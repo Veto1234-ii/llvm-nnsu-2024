@@ -38,13 +38,12 @@ public:
     return std::unique_ptr<clang::ASTConsumer>(
         new Consumer(&Compiler.getASTContext()));
   }
-  
+
   bool ParseArgs(const clang::CompilerInstance &CI,
                  const std::vector<std::string> &args) {
     if (args.size() && args[0] == "help")
       PrintHelp(llvm::errs());
     return true;
-
   }
   void PrintHelp(llvm::raw_ostream &ros) {
     ros << "This plugin prints the names of all classes and their fields\n";

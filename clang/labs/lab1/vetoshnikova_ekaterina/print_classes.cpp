@@ -35,8 +35,7 @@ class Plugin : public clang::PluginASTAction {
 public:
   virtual std::unique_ptr<clang::ASTConsumer>
   CreateASTConsumer(clang::CompilerInstance &Compiler, llvm::StringRef InFile) {
-    return std::unique_ptr<clang::ASTConsumer>(
-        new Consumer(&Compiler.getASTContext()));
+    return std::make_unique<Consumer>(&Compiler.getASTContext());
   }
 
   bool ParseArgs(const clang::CompilerInstance &CI,

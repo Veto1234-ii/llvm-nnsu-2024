@@ -42,6 +42,18 @@ class Circle {
     };
 };
 
+// CHECK: Person
+template<typename T> class Person {
+    //CHECK-NEXT: |_id
+    T id;
+};
+
+// CHECK: Class_st
+class Class_st {
+    // CHECK-NEXT: |_x
+    const int x;
+};
+
 // RUN: %clang_cc1 -load %llvmshlibdir/VetoPluginPrintClasses%pluginext -plugin vetoshnikova-plugin-print-classes -plugin-arg-vetoshnikova-plugin-print-classes help 2>&1 %s | FileCheck %s --check-prefix=HELP
 
 // HELP: This plugin prints the names of all classes and their fields

@@ -1,5 +1,9 @@
-// RUN: %clang_cc1 -load %llvmshlibdir/VetoPluginPrintClasses%pluginext -plugin vetoshnikova-plugin-print-classes %s 2>&1 | FileCheck %s
-// 
+// RUN: split-file %s %t
+// RUN: %clang_cc1 -load %llvmshlibdir/VetoPluginPrintClasses%pluginext -plugin vetoshnikova-plugin-print-classes %t/tests.cpp 2>&1 | FileCheck %t/tests.cpp
+
+
+//--- tests.cpp
+
 // CHECK: MyStruct
 struct MyStruct {
     // CHECK-NEXT: |_v
@@ -51,9 +55,12 @@ template<typename T> class Person {
 // CHECK: Class_st
 class Class_st {
     // CHECK-NEXT: |_x
-    const int x;
+    static int x;
 };
 
-// RUN: %clang_cc1 -load %llvmshlibdir/VetoPluginPrintClasses%pluginext -plugin vetoshnikova-plugin-print-classes -plugin-arg-vetoshnikova-plugin-print-classes help 2>&1 %s | FileCheck %s --check-prefix=HELP
+// RUN: %clang_cc1 -load %llvmshlibdir/VetoPluginPrintClasses%pluginext -plugin vetoshnikova-plugin-print-classes -plugin-arg-vetoshnikova-plugin-print-classes help 2>&1 %t/tests_help.cpp | FileCheck %t/tests_help.cpp --check-prefix=HELP
+
+//--- tests_help.cpp
 
 // HELP: This plugin prints the names of all classes and their fields
+// HELP-NOT: |_

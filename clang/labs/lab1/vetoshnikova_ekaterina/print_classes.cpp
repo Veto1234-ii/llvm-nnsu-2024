@@ -7,17 +7,24 @@
 class Visitor : public clang::RecursiveASTVisitor<Visitor> {
 public:
   explicit Visitor(clang::ASTContext *Context) : Context(Context) {}
+
   bool VisitCXXRecordDecl(clang::CXXRecordDecl *Declaration) {
+
     llvm::outs() << Declaration->getNameAsString() << "\n";
+
     for (const auto &decl : Declaration->decls()) {
+
       if (clang::FieldDecl *field = clang::dyn_cast<clang::FieldDecl>(decl)) {
         llvm::outs() << "  |_" << field->getNameAsString() << "\n";
-      } else if (clang::VarDecl *vard = clang::dyn_cast<clang::VarDecl>(decl)) {
+      }
+
+      else if (clang::VarDecl *vard = clang::dyn_cast<clang::VarDecl>(decl)) {
         if (vard->isStaticDataMember()) {
           llvm::outs() << "  |_" << vard->getNameAsString() << "\n";
         }
       }
     }
+
     return true;
   }
 

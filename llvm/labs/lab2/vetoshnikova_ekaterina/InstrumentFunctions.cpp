@@ -13,7 +13,7 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
 
     llvm::IRBuilder<> builder(context);
 
-    llvm::Module module = F.getParent();
+    auto module = F.getParent();
 
     llvm::FunctionType *type =
         llvm::FunctionType::get(llvm::Type::getVoidTy(context), false);
@@ -30,8 +30,7 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
 
     for (llvm::BasicBlock &b : F) {
 
-      if (llvm::ReturnInst *return =
-              llvm::dyn_cast<llvm::ReturnInst>(b.getTerminator())) {
+      if (auto *reInst = llvm::dyn_cast<llvm::ReturnInst>(b.getTerminator())) {
         builder.SetInsertPoint(b.getTerminator());
         builder.CreateCall(instrumentEnd);
       }

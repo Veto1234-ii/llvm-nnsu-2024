@@ -36,7 +36,7 @@ entry:
 ; CHECK: call void @instrument_start()
 ; CHECK-NEXT: %x.addr = alloca i32, align 4
 ; CHECK-NEXT: %y.addr = alloca i32, align 4
-; CHECK-NEXT: store i32 %a, ptr %x.addr, align 4
+; CHECK-NEXT: store i32 %x, ptr %x.addr, align 4
 ; CHECK-NEXT: store i32 %y, ptr %y.addr, align 4
 ; CHECK-NEXT: %0 = load i32, ptr %x.addr, align 4
 ; CHECK-NEXT: %1 = load i32, ptr %y.addr, align 4
@@ -48,7 +48,7 @@ define dso_local noundef i32 @FuncSum(i32 noundef %x, i32 noundef %y) {
 entry:
   %x.addr = alloca i32, align 4
   %y.addr = alloca i32, align 4
-  store i32 %a, ptr %x.addr, align 4
+  store i32 %x, ptr %x.addr, align 4
   store i32 %y, ptr %y.addr, align 4
   %0 = load i32, ptr %x.addr, align 4
   %1 = load i32, ptr %y.addr, align 4

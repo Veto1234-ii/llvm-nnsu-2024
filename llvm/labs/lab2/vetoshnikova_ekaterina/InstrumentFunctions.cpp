@@ -31,11 +31,11 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
 
     for (llvm::BasicBlock &b : F) {
       for (auto &instr : b) {
-        if (CInst = llvm::dyn_cast<llvm::CallInst>(&instr)) {
+        if ((CInst = llvm::dyn_cast<llvm::CallInst>(&instr)) != NULL) {
+          CInst = llvm::cast<llvm::CallInst>(&instr);
           if (CInst->getCalledFunction() == instrumentStart.getCallee()) {
             fStart = true;
-          } else if (callInst->getCalledFunction() ==
-                     instrumentEnd.getCallee()) {
+          } else if (CInst->getCalledFunction() == instrumentEnd.getCallee()) {
             fEnd = true;
           }
         }
@@ -52,7 +52,8 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
       llvm::ReturnInst *reInst;
       for (llvm::BasicBlock &b : F) {
 
-        if (reInst = llvm::dyn_cast<llvm::ReturnInst>(b.getTerminator())) {
+        if ((reInst = llvm::dyn_cast<llvm::ReturnInst>(b.getTerminator())) !=
+            NULL) {
           builder.SetInsertPoint(b.getTerminator());
           builder.CreateCall(instrumentEnd);
         }
@@ -74,7 +75,7 @@ llvmGetPassPluginInfo() {
                 [](llvm::StringRef name, llvm::FunctionPassManager &FPM,
                    llvm::ArrayRef<llvm::PassBuilder::PipelineElement>) -> bool {
                   if (name == "instrument_functions") {
-                    FPM.addPass(InstrumentationPass{});
+                    FPM.addPass(InstrumentFunctions{});
                     return true;
                   }
                   return false;

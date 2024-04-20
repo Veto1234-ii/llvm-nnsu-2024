@@ -24,15 +24,38 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
     llvm::FunctionCallee instrumentEnd =
         module->getOrInsertFunction("instrument_end", type);
 
-    builder.SetInsertPoint(&F.getEntryBlock().front());
+    bool fStart = false;
+    bool fEnd = false;
 
-    builder.CreateCall(instrumentStart);
+    llvm::CallInst *CInst;
 
     for (llvm::BasicBlock &b : F) {
+      for (auto &instr : b) {
+        if (CInst = llvm::dyn_cast<llvm::CallInst>(&instr)) {
+          if (CInst->getCalledFunction() == instrumentStart.getCallee()) {
+            fStart = true;
+          } else if (callInst->getCalledFunction() ==
+                     instrumentEnd.getCallee()) {
+            fEnd = true;
+          }
+        }
+      }
+    }
 
-      if (auto *reInst = llvm::dyn_cast<llvm::ReturnInst>(b.getTerminator())) {
-        builder.SetInsertPoint(b.getTerminator());
-        builder.CreateCall(instrumentEnd);
+    if (!fStart) {
+      builder.SetInsertPoint(&F.getEntryBlock().front());
+
+      builder.CreateCall(instrumentStart);
+    }
+
+    if (!fEnd) {
+      llvm::ReturnInst *reInst;
+      for (llvm::BasicBlock &b : F) {
+
+        if (reInst = llvm::dyn_cast<llvm::ReturnInst>(b.getTerminator())) {
+          builder.SetInsertPoint(b.getTerminator());
+          builder.CreateCall(instrumentEnd);
+        }
       }
     }
 

@@ -52,6 +52,6 @@ entry:
   store i32 %y, ptr %y.addr, align 4
   %0 = load i32, ptr %x.addr, align 4
   %1 = load i32, ptr %y.addr, align 4
-  %add = sub nsw i32 %0, %1
+  %add = add nsw i32 %0, %1
   ret i32 %add
 }

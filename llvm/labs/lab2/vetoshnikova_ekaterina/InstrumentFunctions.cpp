@@ -29,15 +29,22 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
 
     llvm::CallInst *CInst;
 
-    for (llvm::BasicBlock &b : F) {
-      for (auto &instr : b) {
-        if ((CInst = llvm::dyn_cast<llvm::CallInst>(&instr)) != NULL) {
-          CInst = llvm::cast<llvm::CallInst>(&instr);
-          if (CInst->getCalledFunction() == instrumentStart.getCallee()) {
-            fStart = true;
-          } else if (CInst->getCalledFunction() == instrumentEnd.getCallee()) {
-            fEnd = true;
-          }
+    for (auto *user : instrumentStart.getCallee()->users()) {
+      if ((CInst = llvm::dyn_cast<llvm::CallInst>(user)) != NULL) {
+        CInst = llvm::cast<llvm::CallInst>(user);
+        if (CInst->getParent()->getParent() == &F) {
+          fStart = true;
+          break;
+        }
+      }
+    }
+
+    for (auto *user : instrumentEnd.getCallee()->users()) {
+      if ((CInst = llvm::dyn_cast<llvm::CallInst>(user)) != NULL) {
+        CInst = llvm::cast<llvm::CallInst>(user);
+        if (CInst->getParent()->getParent() == &F) {
+          fEnd = true;
+          break;
         }
       }
     }

@@ -32,7 +32,7 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
     for (auto &user : instrumentStart.getCallee()->users()) {
       if ((CInst = llvm::dyn_cast<llvm::CallInst>(&user)) != NULL) {
         CInst = llvm::cast<llvm::CallInst>(&user);
-        if (CInst->getParent() == &module) {
+        if (CInst->getParent()->getParent() == &F) {
           fStart = true;
           break;
         }
@@ -42,7 +42,7 @@ struct InstrumentFunctions : llvm::PassInfoMixin<InstrumentFunctions> {
     for (auto &user : instrumentEnd.getCallee()->users()) {
       if ((CInst = llvm::dyn_cast<llvm::CallInst>(&user)) != NULL) {
         CInst = llvm::cast<llvm::CallInst>(&user);
-        if (CInst->getParent() == &module) {
+        if (CInst->getParent()->getParent() == &F) {
           fEnd = true;
           break;
         }

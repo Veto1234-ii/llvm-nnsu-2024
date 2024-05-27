@@ -49,8 +49,8 @@
   define dso_local <2 x double> @test4(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr {
   entry:
     %mul = fmul <2 x double> %a, %b
-    %1 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %mul)
-    ret <2 x double> %1
+    %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %mul)
+    ret <2 x double> %0
   }
 
 ...

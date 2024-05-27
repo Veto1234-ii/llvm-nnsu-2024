@@ -38,6 +38,9 @@
     ret <2 x double> %1
   }
 
+  ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+  declare <2 x double> @llvm.fmuladd.v2f64(<2 x double>, <2 x double>, <2 x double>) #0
+
   define dso_local <2 x double> @test3(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr {
   entry:
     %mul = fmul <2 x double> %c, %d
@@ -52,6 +55,8 @@
     %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %mul)
     ret <2 x double> %0
   }
+
+  attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 ...
 ---

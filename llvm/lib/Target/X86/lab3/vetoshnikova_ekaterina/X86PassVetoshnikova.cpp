@@ -1,8 +1,8 @@
 #include "X86.h"
 #include "X86InstrInfo.h"
-#include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
+#include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/Register.h"
 #include <utility>
@@ -17,7 +17,7 @@ public:
 
   X86PassVetoshnikova() : MachineFunctionPass(ID) {}
 
-bool X86PassVetoshnikova::runOnMachineFunction(MachineFunction &Mfunc) {
+  bool runOnMachineFunction(MachineFunction &Mfunc) {
 
     const TargetInstrInfo *info = Mfunc.getSubtarget().getInstrInfo();
     bool ismodified = false;
@@ -34,7 +34,7 @@ bool X86PassVetoshnikova::runOnMachineFunction(MachineFunction &Mfunc) {
         if (instruction->getOpcode() == X86::MULPDrr ||
             instruction->getOpcode() == X86::MULPDrm) {
 
-          mulinstr = &instruction;
+          mulinstr = &*instruction;
 
           for (auto next = instruction; next != basicblock.end(); ++next) {
 
@@ -82,5 +82,5 @@ bool X86PassVetoshnikova::runOnMachineFunction(MachineFunction &Mfunc) {
 
 char X86PassVetoshnikova::ID = 0;
 
-static RegisterPass<X86BendPass> X("x86-pass-vetoshnikova",
-                                   "X86 Pass Vetoshnikova", false, false);
+static RegisterPass<X86PassVetoshnikova>
+    X("x86-pass-vetoshnikova", "X86 Pass Vetoshnikova", false, false);

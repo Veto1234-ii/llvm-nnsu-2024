@@ -10,11 +10,16 @@
 #     return a * b + c;
 # }
 
-# __m128d test3(__m128d x, __m128d y, __m128d z, __m128d p) {
-#     __m128d tmp = x * y;
-#     tmp = z * p;
-#     p = tmp + z;
-#     return p;
+# __m128d test3(__m128d a, __m128d b, __m128d c, __m128d d) {
+#     __m128d tmp = a * b;
+#     tmp = c * d;
+#     d = tmp + c;
+#     return d;
+# }
+
+# __m128d muladd_test4(__m128d a, __m128d b, __m128d c) {
+#     __m128d tmp = a * b;
+#     return tmp + tmp;
 # }
 
 --- |
@@ -29,15 +34,23 @@
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
   define dso_local noundef <2 x double> @test2(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr {
-    %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %c)
-    ret <2 x double> %0
+    %1 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %c)
+    ret <2 x double> %1
   }
 
-  define dso_local <2 x double> @test3(<2 x double> noundef %x, <2 x double> noundef %y, <2 x double> noundef %z, <2 x double> noundef %p) local_unnamed_addr {
+  define dso_local <2 x double> @test3(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr {
   entry:
-    %mul = fmul <2 x double> %z, %p
-    %add = fadd <2 x double> %mul, %z
+    %mul = fmul <2 x double> %c, %d
+    %add = fadd <2 x double> %mul, %c
     ret <2 x double> %add
+  }
+
+  ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
+  define dso_local <2 x double> @test4(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr {
+  entry:
+    %mul = fmul <2 x double> %a, %b
+    %1 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %mul)
+    ret <2 x double> %1
   }
 
 ...
@@ -219,3 +232,36 @@ body:             |
     RET 0, $xmm0
 
 ...
+---
+name:            test4
+alignment:       16
+tracksRegLiveness: true
+debugInstrRef:   true
+registers:
+  - { id: 0, class: vr128 }
+  - { id: 1, class: vr128 }
+  - { id: 2, class: vr128 }
+  - { id: 3, class: vr128 }
+  - { id: 4, class: vr128 }
+liveins:
+  - { reg: '$xmm0', virtual-reg: '%0' }
+  - { reg: '$xmm1', virtual-reg: '%1' }
+  - { reg: '$xmm2', virtual-reg: '%2' }
+frameInfo:
+  maxAlignment:    1
+machineFunctionInfo: {}
+body:             |
+  bb.0 (%ir-block.3):
+    liveins: $xmm0, $xmm1, $xmm2
+  
+    %2:vr128 = COPY $xmm2
+    %1:vr128 = COPY $xmm1
+    %0:vr128 = COPY $xmm0
+    %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
+    %4:vr128 = nofpexcept ADDPDrr %3, %3, implicit $mxcsr
+    ; CHECK: %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
+    $xmm0 = COPY %4
+    RET 0, $xmm0
+
+...
+

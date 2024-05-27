@@ -152,7 +152,7 @@ frameInfo:
   maxAlignment:    1
 machineFunctionInfo: {}
 body:             |
-  bb.0 (%ir-block.3):
+  bb.0.entry:
     liveins: $xmm0, $xmm1, $xmm2
   
     %2:vr128 = COPY $xmm2
@@ -256,7 +256,7 @@ frameInfo:
   maxAlignment:    1
 machineFunctionInfo: {}
 body:             |
-  bb.0 (%ir-block.3):
+  bb.0.entry:
     liveins: $xmm0, $xmm1, $xmm2
   
     %2:vr128 = COPY $xmm2

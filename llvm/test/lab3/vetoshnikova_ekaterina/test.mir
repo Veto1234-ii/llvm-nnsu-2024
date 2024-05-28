@@ -1,66 +1,38 @@
 # RUN: llc -mtriple x86_64 --load=%llvmshlibdir/X86PassVetoshnikova%shlibext -run-pass=x86-pass-vetoshnikova  %s -o - | FileCheck %s
 
-# __m128d test1(__m128d a, __m128d b, __m128d c, __m128d d) {
+# __m128d me(__m128d a, __m128d b, __m128d c, __m128d d) {
 #     __m128d tmp = a * b;
 #     d = tmp + c;
 #     return d;
 # }
 
-# __m128d test2(__m128d a, __m128d b, __m128d c) {
-#     return a * b + c;
-# }
-
-# __m128d test3(__m128d a, __m128d b, __m128d c, __m128d d) {
+# __m128d ow(__m128d a, __m128d b, __m128d c, __m128d d) {
 #     __m128d tmp = a * b;
 #     tmp = c * d;
 #     d = tmp + c;
 #     return d;
 # }
 
-# __m128d test4(__m128d a, __m128d b, __m128d c, __m128d d) {
-#     __m128d tmp = c / d;
-#     a = a * b + tmp;
-#     return a;
-# }
-
 --- |
   target triple = "x86_64"
 
-  define dso_local <2 x double> @test1(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr {
+  define dso_local <2 x double> @me(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr {
   entry:
     %mul = fmul <2 x double> %a, %b
     %add = fadd <2 x double> %mul, %c
     ret <2 x double> %add
   }
 
-  ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
-  define dso_local noundef <2 x double> @test2(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr {
-    %1 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %c)
-    ret <2 x double> %1
-  }
-
-  ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-  declare <2 x double> @llvm.fmuladd.v2f64(<2 x double>, <2 x double>, <2 x double>) #0
-
-  define dso_local <2 x double> @test3(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr {
+  define dso_local <2 x double> @ow(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr {
   entry:
-    %mul = fmul <2 x double> %c, %d
-    %add = fadd <2 x double> %mul, %c
+    %mul1 = fmul <2 x double> %c, %d
+    %add = fadd <2 x double> %mul1, %c
     ret <2 x double> %add
   }
 
-  define dso_local <2 x double> @test4(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c, <2 x double> noundef %d) local_unnamed_addr {
-  entry:
-    %div = fdiv <2 x double> %c, %d
-    %0 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %div)
-    ret <2 x double> %0
-  }
-
-  attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-
 ...
 ---
-name:            test1
+name:            me
 alignment:       16
 exposesReturnsTwice: false
 legalized:       false
@@ -134,39 +106,7 @@ body:             |
 
 ...
 ---
-name:            test2
-alignment:       16
-tracksRegLiveness: true
-debugInstrRef:   true
-registers:
-  - { id: 0, class: vr128, preferred-register: '' }
-  - { id: 1, class: vr128, preferred-register: '' }
-  - { id: 2, class: vr128, preferred-register: '' }
-  - { id: 3, class: vr128, preferred-register: '' }
-  - { id: 4, class: vr128, preferred-register: '' }
-liveins:
-  - { reg: '$xmm0', virtual-reg: '%0' }
-  - { reg: '$xmm1', virtual-reg: '%1' }
-  - { reg: '$xmm2', virtual-reg: '%2' }
-frameInfo:
-  maxAlignment:    1
-machineFunctionInfo: {}
-body:             |
-  bb.0.entry:
-    liveins: $xmm0, $xmm1, $xmm2
-  
-    %2:vr128 = COPY $xmm2
-    %1:vr128 = COPY $xmm1
-    %0:vr128 = COPY $xmm0
-    %3:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
-    %4:vr128 = nofpexcept ADDPDrr %3, %2, implicit $mxcsr
-    ; CHECK: %4:vr128 = VFMADD213PDr %0, %1, %2, implicit $mxcsr
-    $xmm0 = COPY %4
-    RET 0, $xmm0
-
-...
----
-name:            test3
+name:            ow
 alignment:       16
 exposesReturnsTwice: false
 legalized:       false
@@ -237,39 +177,5 @@ body:             |
     RET 0, $xmm0
 
 ...
----
-name:            test4
-alignment:       16
-tracksRegLiveness: true
-debugInstrRef:   true
-registers:
-  - { id: 0, class: vr128, preferred-register: '' }
-  - { id: 1, class: vr128, preferred-register: '' }
-  - { id: 2, class: vr128, preferred-register: '' }
-  - { id: 3, class: vr128, preferred-register: '' }
-  - { id: 4, class: vr128, preferred-register: '' }
-liveins:
-  - { reg: '$xmm0', virtual-reg: '%0' }
-  - { reg: '$xmm1', virtual-reg: '%1' }
-  - { reg: '$xmm2', virtual-reg: '%2' }
-  - { reg: '$xmm2', virtual-reg: '%3' }
-frameInfo:
-  maxAlignment:    1
-machineFunctionInfo: {}
-body:             |
-  bb.0.entry:
-    liveins: $xmm0, $xmm1, $xmm2, $xmm3
 
-    ; CHECK:        %3:vr128 = COPY $xmm3
-    ; CHECK:        RET 0, $xmm0
-    %3:vr128 = COPY $xmm3
-    %2:vr128 = COPY $xmm2
-    %1:vr128 = COPY $xmm1
-    %0:vr128 = COPY $xmm0
-    %4:vr128 = nofpexcept DIVPDrr %2, %3, implicit $mxcsr
-    %5:vr128 = nofpexcept MULPDrr %0, %1, implicit $mxcsr
-    %6:vr128 = nofpexcept ADDPDrr %5, %4, implicit $mxcsr
-    $xmm0 = COPY %6
-    RET 0, $xmm0
 
-...

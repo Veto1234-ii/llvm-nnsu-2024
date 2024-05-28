@@ -17,57 +17,74 @@ public:
 
   X86PassVetoshnikova() : MachineFunctionPass(ID) {}
 
-  bool runOnMachineFunction(MachineFunction &MF) {
-    bool Modified = false;
-    const TargetInstrInfo *TII = MF.getSubtarget().getInstrInfo();
+  bool runOnMachineFunction(MachineFunction &Mfunc) {
 
-    for (auto &MBB : MF) {
-      std::vector<llvm::MachineBasicBlock::iterator> mulToErase;
-      llvm::Register ar2;
-      MachineInstr *AI;
-      for (auto I = MBB.begin(); I != MBB.end(); I++) {
-        if (I->getOpcode() == X86::MULPDrr) {
-          const llvm::Register mr0 = I->getOperand(0).getReg();
-          bool Found = false;
-          for (auto J = I; J != MBB.end(); J++) {
-            if (J->getOpcode() == X86::ADDPDrr) {
-              llvm::Register ar1 = J->getOperand(1).getReg();
-              ar2 = J->getOperand(2).getReg();
-              if (mr0 != ar1 && mr0 != ar2)
+    bool ismodified = false;
+    const TargetInstrInfo *info = Mfunc.getSubtarget().getInstrInfo();
+
+    for (auto &basicblock : Mfunc) {
+
+      std::vector<llvm::MachineBasicBlock::iterator> Erase;
+      llvm::Register addReg2;
+      MachineInstr *MInstr;
+
+      for (auto instruction = basicblock.begin();
+           instruction != basicblock.end(); ++instruction) {
+
+        if (instruction->getOpcode() == X86::MULPDrr) {
+
+          const llvm::Register mullReg0 = I->getOperand(0).getReg();
+          bool foundAdd = false;
+
+          for (auto next = std::next(instruction); next != basicblock.end();
+               ++next) {
+
+            if (next->getOpcode() == X86::ADDPDrr) {
+
+              llvm::Register addReg1 = next->getOperand(1).getReg();
+              addReg2 = next->getOperand(2).getReg();
+
+              if (mullReg0 != addReg1 && mullReg0 != addReg2)
                 continue;
-              if (Found) {
-                Found = false;
+
+              if (foundAdd) {
+                foundAdd = false;
                 break;
               }
-              if (mr0 == ar2) {
-                ar2 = ar1;
+
+              if (mullReg0 == addReg2) {
+                addReg2 = addReg1;
               }
-              AI = &(*J);
-              Found = true;
+
+              MInstr = &(*next);
+              foundAdd = true;
             }
           }
-          if (!Found)
+
+          if (!foundAdd)
             continue;
 
-          auto &MI = *I;
-          MIMetadata MIMD(*AI);
-          MachineInstrBuilder MIB =
-              BuildMI(MBB, *AI, MIMD, TII->get(X86::VFMADD213PDr));
-          MIB.addReg(AI->getOperand(0).getReg(), RegState::Define);
-          MIB.addReg(MI.getOperand(1).getReg());
-          MIB.addReg(MI.getOperand(2).getReg());
-          MIB.addReg(ar2);
-          AI->eraseFromParent();
-          mulToErase.emplace_back(I);
-          Modified = true;
+          auto &MInstr = *instruction;
+
+          MIMetadata MIMD(*MInstr);
+
+          MachineInstrBuilder builder =
+              BuildMI(basicblock, *MInstr, MIMD, info->get(X86::VFMADD213PDr));
+          builder.addReg(MInstr->getOperand(0).getReg(), RegState::Define);
+          builder.addReg(MInstr.getOperand(1).getReg());
+          builder.addReg(MInstr.getOperand(2).getReg());
+          builder.addReg(addReg2);
+          MInstr->eraseFromParent();
+          Erase.emplace_back(instruction);
+          ismodified = true;
         }
       }
-      for (auto &mul : mulToErase) {
+      for (auto &mul : Erase) {
         (*mul).eraseFromParent();
       }
     }
 
-    return Modified;
+    return ismodified;
   }
 };
 } // namespace

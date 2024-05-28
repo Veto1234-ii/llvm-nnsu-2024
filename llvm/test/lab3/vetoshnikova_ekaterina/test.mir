@@ -35,6 +35,7 @@
 
   ; Function Attrs: mustprogress nofree nosync nounwind willreturn memory(none) uwtable
   define dso_local noundef <2 x double> @test2(<2 x double> noundef %a, <2 x double> noundef %b, <2 x double> noundef %c) local_unnamed_addr {
+  entry:
     %1 = tail call <2 x double> @llvm.fmuladd.v2f64(<2 x double> %a, <2 x double> %b, <2 x double> %c)
     ret <2 x double> %1
   }

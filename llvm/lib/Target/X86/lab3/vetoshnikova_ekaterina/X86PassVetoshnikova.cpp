@@ -26,14 +26,14 @@ public:
 
       std::vector<llvm::MachineBasicBlock::iterator> Erase;
       llvm::Register addReg2;
-      MachineInstr *MInstr;
+      MachineInstr *AInstr;
 
       for (auto instruction = basicblock.begin();
            instruction != basicblock.end(); ++instruction) {
 
         if (instruction->getOpcode() == X86::MULPDrr) {
 
-          const llvm::Register mullReg0 = I->getOperand(0).getReg();
+          const llvm::Register mullReg0 = instruction->getOperand(0).getReg();
           bool foundAdd = false;
 
           for (auto next = instruction; next != basicblock.end();
@@ -56,7 +56,7 @@ public:
                 addReg2 = addReg1;
               }
 
-              MInstr = &(*next);
+              AInstr = &(*next);
               foundAdd = true;
             }
           }
@@ -66,15 +66,15 @@ public:
 
           auto &MInstr = *instruction;
 
-          MIMetadata MIMD(*MInstr);
+          MIMetadata MIMD(*AInstr);
 
           MachineInstrBuilder builder =
-              BuildMI(basicblock, *MInstr, MIMD, info->get(X86::VFMADD213PDr));
-          builder.addReg(MInstr->getOperand(0).getReg(), RegState::Define);
+              BuildMI(basicblock, *AInstr, MIMD, info->get(X86::VFMADD213PDr));
+          builder.addReg(AInstr->getOperand(0).getReg(), RegState::Define);
           builder.addReg(MInstr.getOperand(1).getReg());
           builder.addReg(MInstr.getOperand(2).getReg());
           builder.addReg(addReg2);
-          MInstr->eraseFromParent();
+          AInstr->eraseFromParent();
           Erase.emplace_back(instruction);
           ismodified = true;
         }

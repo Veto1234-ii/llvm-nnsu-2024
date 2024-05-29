@@ -36,8 +36,7 @@ public:
           const llvm::Register mullReg0 = instruction->getOperand(0).getReg();
           bool foundAdd = false;
 
-          for (auto next = instruction; next != basicblock.end();
-               ++next) {
+          for (auto next = instruction; next != basicblock.end(); ++next) {
 
             if (next->getOpcode() == X86::ADDPDrr) {
 

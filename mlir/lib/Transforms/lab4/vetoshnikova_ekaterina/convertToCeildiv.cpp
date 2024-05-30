@@ -38,8 +38,7 @@ private:
     Value a = op->getOperand(0);
     Value b = op->getOperand(1);
 
-    Value one = builder.create<arith::ConstantIntOp>(
-        loc, 1, builder.getIntegerType(32));
+    Value one = builder.create<arith::ConstantIntOp>(loc, 1, a.getType());
     Value add = builder.create<arith::AddIOp>(loc, a, b);
     Value sub = builder.create<arith::SubIOp>(loc, add, one);
     Value div;

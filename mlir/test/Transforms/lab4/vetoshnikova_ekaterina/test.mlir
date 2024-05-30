@@ -21,4 +21,24 @@ llvm.func @testceildivsi(%arg0: i32, %arg1: i32) -> i32 attributes {llvm.linkage
     %0 = arith.ceildivsi %arg0, %arg1 : i32
     llvm.return %0 : i32
 }
+llvm.func @testceildivui64(%arg0: i64, %arg1: i64) -> i64 attributes {llvm.linkage = #llvm.linkage<external>} {
+    // CHECK: llvm.func @testceildivui64(%arg0: i64, %arg1: i64) -> i64 attributes {llvm.linkage = #llvm.linkage<external>} {
+    // CHECK-NEXT: %c1_i64 = arith.constant 1 : i64
+    // CHECK-NEXT: %0 = arith.addi %arg0, %arg1 : i64
+    // CHECK-NEXT: %1 = arith.subi %0, %c1_i64 : i64
+    // CHECK-NEXT: %2 = arith.divui %1, %arg1 : i64
+    // CHECK-NOT: %0 = arith.ceildivui %arg0, %arg1 : i64
+    %0 = arith.ceildivui %arg0, %arg1 : i64
+    llvm.return %0 : i64
+}
+llvm.func @testceildivsi64(%arg0: i64, %arg1: i64) -> i64 attributes {llvm.linkage = #llvm.linkage<external>} {
+    // CHECK: llvm.func @testceildivsi64(%arg0: i64, %arg1: i64) -> i64 attributes {llvm.linkage = #llvm.linkage<external>} {
+    // CHECK-NEXT: %c1_i64 = arith.constant 1 : i64
+    // CHECK-NEXT: %0 = arith.addi %arg0, %arg1 : i64
+    // CHECK-NEXT: %1 = arith.subi %0, %c1_i64 : i64
+    // CHECK-NEXT: %2 = arith.divsi %1, %arg1 : i64
+    // CHECK-NOT: %0 = arith.ceildivsi %arg0, %arg1 : i64
+    %0 = arith.ceildivsi %arg0, %arg1 : i64
+    llvm.return %0 : i64
+}
 }

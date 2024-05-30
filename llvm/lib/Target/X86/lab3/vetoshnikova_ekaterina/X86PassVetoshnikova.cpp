@@ -79,7 +79,7 @@ public:
         }
       }
       for (auto &mul : Erase) {
-        (*mul).eraseFromParent();
+        mul->eraseFromParent();
       }
     }
 

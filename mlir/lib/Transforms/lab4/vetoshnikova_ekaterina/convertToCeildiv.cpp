@@ -22,16 +22,16 @@ public:
 
   void runOnOperation() override {
     getOperation()->walk([&](Operation *op) {
-      if (auto ceilDivUI = dyn_cast<arith::CeilDivUIOp>(op)) {
-        replaceCeildiv(ceilDivUI, false);
-      } else if (auto ceilDivSI = dyn_cast<arith::CeilDivSIOp>(op)) {
-        replaceCeildiv(ceilDivSI, true);
+      if (isa<arith::CeilDivUIOp, arith::CeilDivUIOp>(op)) {
+        replaceCeildiv(op);
+      } else if (isa<arith::CeilDivUIOp, arith::CeilDivSIOp>(op)) {
+        replaceCeildiv(op);
       }
     });
   }
 
 private:
-  void replaceCeildiv(Operation *op, bool isSigned) {
+  void replaceCeildiv(Operation *op) {
 
     OpBuilder builder(op);
     Location loc = op->getLoc();
@@ -43,7 +43,7 @@ private:
     Value sub = builder.create<arith::SubIOp>(loc, add, one);
     Value div;
 
-    if (isSigned) {
+    if (sub.getType().isSignlessInteger() && b.getType().isSignlessInteger()) {
       div = builder.create<arith::DivSIOp>(loc, sub, b);
     } else {
       div = builder.create<arith::DivUIOp>(loc, sub, b);

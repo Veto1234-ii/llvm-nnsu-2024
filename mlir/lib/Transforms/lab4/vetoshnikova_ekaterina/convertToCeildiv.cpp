@@ -22,9 +22,7 @@ public:
 
   void runOnOperation() override {
     getOperation()->walk([&](Operation *op) {
-      if (isa<arith::CeilDivUIOp, arith::CeilDivUIOp>(op)) {
-        replaceCeildiv(op);
-      } else if (isa<arith::CeilDivUIOp, arith::CeilDivSIOp>(op)) {
+      if (isa<arith::CeilDivUIOp, arith::CeilDivSIOp>(op)) {
         replaceCeildiv(op);
       }
     });
@@ -32,7 +30,6 @@ public:
 
 private:
   void replaceCeildiv(Operation *op) {
-
     OpBuilder builder(op);
     Location loc = op->getLoc();
     Value a = op->getOperand(0);

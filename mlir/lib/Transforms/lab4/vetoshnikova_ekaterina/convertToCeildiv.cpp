@@ -40,7 +40,7 @@ private:
     Value sub = builder.create<arith::SubIOp>(loc, add, one);
     Value div;
 
-    if (sub.getType().isSignlessInteger() && b.getType().isSignlessInteger()) {
+    if (isa<arith::CeilDivSIOp>(op)) {
       div = builder.create<arith::DivSIOp>(loc, sub, b);
     } else {
       div = builder.create<arith::DivUIOp>(loc, sub, b);
